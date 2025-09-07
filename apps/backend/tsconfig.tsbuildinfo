@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/router/lawyerrouter.ts","./src/router/userrouter.ts","./src/middleware/authlawyermiddleware.ts"],"version":"5.9.2"}
