@@ -22,13 +22,16 @@ importers:
     dependencies:
       '@repo/db':
         specifier: workspace:*
-        version: link:../../packages/DB
+        version: link:../../packages/db
       '@types/express':
         specifier: ^5.0.3
         version: 5.0.3
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
+      bcryptjs:
+        specifier: ^3.0.2
+        version: 3.0.2
       express:
         specifier: ^5.1.0
         version: 5.1.0
@@ -87,7 +90,7 @@ importers:
     dependencies:
       '@repo/db':
         specifier: workspace:*
-        version: link:../../packages/DB
+        version: link:../../packages/db
       react:
         specifier: ^19.1.1
         version: 19.1.1
@@ -166,10 +169,10 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  packages/DB:
+  packages/db:
     dependencies:
       '@prisma/client':
-        specifier: ^5.0.0
+        specifier: ^5.20.0
         version: 5.22.0(prisma@5.22.0)
     devDependencies:
       '@repo/typescript-config':
@@ -179,10 +182,10 @@ importers:
         specifier: ^1.5.0
         version: 1.5.0
       prisma:
-        specifier: ^5.0.0
+        specifier: ^5.20.0
         version: 5.22.0
       typescript:
-        specifier: ^5.2.0
+        specifier: ^5.0.0
         version: 5.9.2
 
   packages/eslint-config:
@@ -1147,6 +1150,10 @@ packages:
   bcrypt@6.0.0:
     resolution: {integrity: sha512-cU8v/EGSrnH+HnxV2z0J7/blxH8gq7Xh2JFT6Aroax7UohdmiJJlxApMxtKfuI7z68NvvVcmR78k2LbT6efhRg==}
     engines: {node: '>= 18'}
+
+  bcryptjs@3.0.2:
+    resolution: {integrity: sha512-k38b3XOZKv60C4E2hVsXTolJWfkGRMbILBIe2IBITXciy5bOsTKot5kDrf3ZfufQtQOUN5mXceUEpU1rTl9Uog==}
+    hasBin: true
 
   binary-extensions@1.13.1:
     resolution: {integrity: sha512-Un7MIEDdUC5gNpcGDV97op1Ywk748MpHcFTHoYs6qnj1Z3j7I53VG3nwZhKzoBZmbdRNnb6WRdFlwl7tSDuZGw==}
@@ -3842,6 +3849,8 @@ snapshots:
     dependencies:
       node-addon-api: 8.5.0
       node-gyp-build: 4.8.4
+
+  bcryptjs@3.0.2: {}
 
   binary-extensions@1.13.1: {}
 

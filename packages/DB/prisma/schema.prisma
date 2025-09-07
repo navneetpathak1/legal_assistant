@@ -6,17 +6,20 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "./src/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
 model User {
   id          Int       @id @default(autoincrement())
   name        String
   email       String    @unique
+  password    String
   country     String
   createdAt   DateTime  @default(now())
   subscription Subscription @default(FREE) 
@@ -61,7 +64,3 @@ enum Subscription {
   FREE
   PREMIUM
 }
-
-
-
-
