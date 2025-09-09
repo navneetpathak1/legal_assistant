@@ -126,4 +126,6 @@ userRouter.get("/profile", authenticateUser, async (req: Request & { user?: any 
   }
 });
 
+
+
 export default userRouter;
