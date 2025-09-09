@@ -1,39 +1,14 @@
 import { Router } from "express";
+import type {Request, Response, NextFunction} from "express";
 import { prismaClient } from "@repo/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-<<<<<<< HEAD
-import type { Request, Response, NextFunction } from "express";
-=======
 
->>>>>>> b56f6c79e8e55040367c30862deb42dad469facb
 const userRouter = Router();
 const JWT_SECRET = "your_jwt_secret";
 
 // Register
-userRouter.post("/register", async (req, res) => {
-  try {
-    const { name, email, password, country } = req.body;
-
-<<<<<<< HEAD
-    if (!name || !email || !password || !country) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-
-    // Check if user already exists
-    const existingUser = await prismaClient.user.findUnique({
-      where: { email },
-    });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists." });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-=======
-// Register
-userRouter.post("/register", async (req, res) => {
+userRouter.post("/register", async (req: Request, res: Response) => {
   try {
     const { name, email, password, country } = req.body;
 
@@ -42,9 +17,7 @@ userRouter.post("/register", async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await prismaClient.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await prismaClient.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists." });
     }
@@ -52,13 +25,11 @@ userRouter.post("/register", async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
->>>>>>> b56f6c79e8e55040367c30862deb42dad469facb
     // Create user
     const user = await prismaClient.user.create({
       data: { name, email, password: hashedPassword, country },
     });
 
-<<<<<<< HEAD
     res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -68,19 +39,6 @@ userRouter.post("/register", async (req, res) => {
         country: user.country,
       },
     });
-=======
-    res
-      .status(201)
-      .json({
-        message: "User registered successfully",
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          country: user.country,
-        },
-      });
->>>>>>> b56f6c79e8e55040367c30862deb42dad469facb
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -88,26 +46,21 @@ userRouter.post("/register", async (req, res) => {
 });
 
 // Login
-userRouter.post("/login", async (req, res) => {
+userRouter.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required." });
+      return res.status(400).json({ message: "Email and password are required." });
     }
 
     const user = await prismaClient.user.findUnique({ where: { email } });
     if (!user) return res.status(400).json({ message: "Invalid credentials." });
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid)
-      return res.status(400).json({ message: "Invalid credentials." });
+    if (!isPasswordValid) return res.status(400).json({ message: "Invalid credentials." });
 
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
     res.json({ message: "Login successful", token });
   } catch (err) {
@@ -116,21 +69,13 @@ userRouter.post("/login", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-const authenticateUser = (
-  req: Request & { user?: any },
-  res: Response,
-  next: NextFunction
-) => {
+// Authenticate middleware
+const authenticateUser = (req: Request & { user?: any }, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ message: "No token provided" });
-  }
+  if (!authHeader) return res.status(401).json({ message: "No token provided" });
 
   const token = authHeader.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ message: "Token missing" });
-  }
+  if (!token) return res.status(401).json({ message: "Token missing" });
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -142,49 +87,43 @@ const authenticateUser = (
   }
 };
 
-// Profile
-userRouter.get(
-  "/profile",
-  authenticateUser,
-  async (req: Request & { user?: any }, res: Response) => {
-    try {
-      const user = await prismaClient.user.findUnique({
-        where: { id: req.user.userId },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          country: true,
-          createdAt: true,
-          subscription: true,
-          posts: {
-            select: {
-              id: true,
-              title: true,
-              published: true,
-              createdAt: true,
-              chats: {
-                select: {
-                  id: true,
-                  message: true,
-                  createdAt: true,
-                },
+// Profile route
+userRouter.get("/profile", authenticateUser, async (req: Request & { user?: any }, res: Response) => {
+  try {
+    const user = await prismaClient.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        country: true,
+        createdAt: true,
+        subscription: true,
+        posts: {
+          select: {
+            id: true,
+            title: true,
+            published: true,
+            createdAt: true,
+            chats: {
+              select: {
+                id: true,
+                message: true,
+                createdAt: true,
               },
             },
           },
         },
-      });
+      },
+    });
 
-      if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-      res.json({ profile: user });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error" });
-    }
+    res.json({ profile: user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-);
+});
 
-=======
->>>>>>> b56f6c79e8e55040367c30862deb42dad469facb
 export default userRouter;
