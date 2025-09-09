@@ -9,12 +9,12 @@
     "postbuild": "cpx \"src/generated/**\" dist/generated"
   },
   "dependencies": {
-    "@prisma/client": "^5.0.0"
+    "@prisma/client": "^5.20.0"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "prisma": "^5.20.0",
+    "typescript": "^5.0.0",
     "cpx": "^1.5.0",
-    "prisma": "^5.0.0",
-    "typescript": "^5.2.0"
+     "@repo/typescript-config": "workspace:*"
   }
 }

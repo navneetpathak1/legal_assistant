@@ -1,5 +1,5 @@
 {
-  "name": "Final_year",
+  "name": "final_year",
   "private": true,
   "scripts": {
     "build": "turbo run build",
