@@ -94,16 +94,16 @@ function Footer() {
           </div>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a
-              href="#"
+              href="/T&C"
               className="text-gray-400 hover:text-white transition-colors"
             >
-              Terms
+              Get Started
             </a>
             <a
-              href="#"
+              href="/T&C"
               className="text-gray-400 hover:text-white transition-colors"
             >
-              Privacy
+              Get Started
             </a>
             <a
               href="#"

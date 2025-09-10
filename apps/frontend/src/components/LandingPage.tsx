@@ -1,4 +1,5 @@
 import { useState } from "react";
+import {Link} from "react-router-dom"
 import {
   Menu,
   X,
@@ -142,14 +143,8 @@ function LandingPage() {
               >
                 Reviews
               </a>
-              <a
-                href="#contact"
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-              >
-                Contact
-              </a>
               <button className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-all duration-300 transform hover:scale-105">
-                Get Started
+                <Link to="/about">Get Started</Link>
               </button>
             </nav>
 
@@ -195,15 +190,9 @@ function LandingPage() {
                   className="block text-gray-700 hover:text-blue-600 font-medium"
                 >
                   Reviews
-                </a>
-                <a
-                  href="#contact"
-                  className="block text-gray-700 hover:text-blue-600 font-medium"
-                >
-                  Contact
-                </a>
+                </a>  
                 <button className="w-full bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors">
-                  Get Started
+                  <Link to="/about">Get Started</Link>
                 </button>
               </div>
             </div>
@@ -233,11 +222,11 @@ function LandingPage() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button className="bg-blue-600 text-white px-8 py-4 rounded-full hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center group">
-                  Start Consultation
+                  <Link to="/about">Get Started</Link>
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-full hover:border-blue-600 hover:text-blue-600 transition-all duration-300">
-                  Learn More
+                 <Link to="/T&C">Learn More</Link>
                 </button>
               </div>
 
