@@ -1,5 +1,5 @@
 import { Router } from "express";
-import type {Request, Response, NextFunction} from "express";
+import type { Request, Response, NextFunction } from "express";
 import { prismaClient } from "@repo/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 const userRouter = Router();
 const JWT_SECRET = "your_jwt_secret";
 
-// Register
+// -------------------- REGISTER --------------------
 userRouter.post("/register", async (req: Request, res: Response) => {
   try {
     const { name, email, password, country } = req.body;
@@ -16,16 +16,11 @@ userRouter.post("/register", async (req: Request, res: Response) => {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Check if user already exists
     const existingUser = await prismaClient.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists." });
-    }
+    if (existingUser) return res.status(400).json({ message: "User already exists." });
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await prismaClient.user.create({
       data: { name, email, password: hashedPassword, country },
     });
@@ -45,14 +40,12 @@ userRouter.post("/register", async (req: Request, res: Response) => {
   }
 });
 
-// Login
+// -------------------- LOGIN --------------------
 userRouter.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required." });
-    }
+    if (!email || !password) return res.status(400).json({ message: "Email and password are required." });
 
     const user = await prismaClient.user.findUnique({ where: { email } });
     if (!user) return res.status(400).json({ message: "Invalid credentials." });
@@ -69,7 +62,7 @@ userRouter.post("/login", async (req: Request, res: Response) => {
   }
 });
 
-// Authenticate middleware
+// -------------------- AUTH MIDDLEWARE --------------------
 const authenticateUser = (req: Request & { user?: any }, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "No token provided" });
@@ -87,7 +80,7 @@ const authenticateUser = (req: Request & { user?: any }, res: Response, next: Ne
   }
 };
 
-// Profile route
+// -------------------- PROFILE --------------------
 userRouter.get("/profile", authenticateUser, async (req: Request & { user?: any }, res: Response) => {
   try {
     const user = await prismaClient.user.findUnique({
@@ -99,20 +92,22 @@ userRouter.get("/profile", authenticateUser, async (req: Request & { user?: any 
         country: true,
         createdAt: true,
         subscription: true,
-        posts: {
+        conversations: { 
           select: {
             id: true,
             title: true,
-            published: true,
             createdAt: true,
-            chats: {
+            chats: {  
               select: {
                 id: true,
+                role: true,
                 message: true,
                 createdAt: true,
               },
+              orderBy: { createdAt: "asc" },
             },
           },
+          orderBy: { createdAt: "desc" },
         },
       },
     });
@@ -125,7 +120,5 @@ userRouter.get("/profile", authenticateUser, async (req: Request & { user?: any 
     res.status(500).json({ message: "Server error" });
   }
 });
-
-
 
 export default userRouter;

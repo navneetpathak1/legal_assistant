@@ -1,25 +1,19 @@
-import React, { useState } from 'react';
-import { 
-  Mail, 
-  Lock, 
-  Eye,
-  EyeOff,
-  Scale,
-  ArrowRight
-} from 'lucide-react';
+import React, { useState } from "react";
+import { Mail, Lock, Eye, EyeOff, Scale, ArrowRight } from "lucide-react";
 
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface FormData {
   email: string;
   password: string;
 }
 
-const SignInForm= () => {
+const SignInForm = () => {
+  const navigate = useNavigate();
   const { type } = useParams<{ type: "user" | "lawyer" }>();
   const [formData, setFormData] = useState<FormData>({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -28,57 +22,88 @@ const SignInForm= () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name as keyof FormData]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
-    
+
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = "Please enter a valid email address";
     }
-    
+
     if (!formData.password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      setIsLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Sign in submitted:', formData);
-        setIsLoading(false);
-        // Handle successful sign in here
-      }, 1500);
+
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+
+    const endpoint =
+      type === "user"
+        ? "http://localhost:3003/api/v1/users/login"
+        : "http://localhost:3003/api/v1/lawyers/login";
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log(`${type} login successful:`, data);
+        // Save token in localStorage or context
+        localStorage.setItem("token", data.token);
+
+        // Redirect to dashboard based on type
+        navigate(type === "user" ? "/userDashboard" : "/dashboard");
+      } else {
+        alert(data.message || data.error || "Invalid credentials");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Server error. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const inputClass = (fieldName: keyof FormData) => 
+  const inputClass = (fieldName: keyof FormData) =>
     `w-full pl-10 pr-4 py-3 border rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-      errors[fieldName] 
-        ? 'border-red-300 bg-red-50' 
-        : 'border-gray-200 bg-gray-50 hover:bg-white focus:bg-white'
+      errors[fieldName]
+        ? "border-red-300 bg-red-50"
+        : "border-gray-200 bg-gray-50 hover:bg-white focus:bg-white"
     }`;
 
   return (
@@ -112,7 +137,7 @@ const SignInForm= () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={inputClass('email')}
+                  className={inputClass("email")}
                   placeholder="Enter your email"
                   autoComplete="email"
                 />
@@ -130,11 +155,11 @@ const SignInForm= () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={inputClass('password')}
+                  className={inputClass("password")}
                   placeholder="Enter your password"
                   autoComplete="current-password"
                 />
@@ -143,7 +168,11 @@ const SignInForm= () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
               {errors.password && (
@@ -160,14 +189,17 @@ const SignInForm= () => {
                   type="checkbox"
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-700"
+                >
                   Remember me
                 </label>
               </div>
               <div className="text-sm">
-                <a href="#" className="text-blue-600 hover:text-blue-500 font-medium transition-colors">
+                {/* <a href="#" className="text-blue-600 hover:text-blue-500 font-medium transition-colors">
                   Forgot password?
-                </a>
+                </a> */}
               </div>
             </div>
 
@@ -192,7 +224,7 @@ const SignInForm= () => {
           </form>
 
           {/* Divider */}
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200" />
@@ -201,10 +233,10 @@ const SignInForm= () => {
                 <span className="px-2 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Social Sign In */}
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          {/* <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               type="button"
               className="w-full inline-flex justify-center py-2.5 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
@@ -227,14 +259,17 @@ const SignInForm= () => {
               </svg>
               <span className="ml-2">Facebook</span>
             </button>
-          </div>
+          </div> */}
 
           {/* Register Link */}
           <div className="text-center mt-6 pt-6 border-t border-gray-100">
             <p className="text-gray-600">
-              Don't have an account?{' '}
-              <a href="#" className="text-blue-600 hover:text-blue-500 font-semibold transition-colors">
-                Sign up here {type === "user"}
+              Don't have an account?{" "}
+              <a
+                href={`/register/${type}`}
+                className="text-blue-600 hover:text-blue-500 font-semibold transition-colors"
+              >
+                Sign up here
               </a>
             </p>
           </div>

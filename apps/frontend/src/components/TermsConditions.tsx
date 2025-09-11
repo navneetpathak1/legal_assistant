@@ -1,12 +1,12 @@
 import React from 'react';
 import { ArrowLeft, Scale, Shield, FileText, AlertTriangle, Users, Globe, Lock } from 'lucide-react';
-import { Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 interface TermsConditionsProps {
   onBack: () => void;
   page: string
 }
 
-const TermsConditions: React.FC<TermsConditionsProps> = ({ onBack, page }) => {
+const TermsConditions: React.FC<TermsConditionsProps> = ({ onBack }) => {
   const sections = [
     {
       id: 'acceptance',
@@ -244,6 +244,7 @@ Response time: I will try to reply but not guarantee
 For technical support or general questions, please use our in-platform support system or visit our Help Center (HPC Lab).`
     }
   ];
+  const navigate =  useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -251,10 +252,10 @@ For technical support or general questions, please use our in-platform support s
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
-            <button
+            <button onClick={() => navigate(-1)}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <Link to={page} ><ArrowLeft size={24} className="text-gray-600" /></Link>
+              <ArrowLeft size={24} className="text-gray-600" />
             </button>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">

@@ -12,7 +12,7 @@ import {
   UserCheck,
   Scale,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface RegisterFormProps {
   type: "user" | "lawyer";
@@ -30,6 +30,7 @@ interface FormData {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -103,7 +104,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
 
           if (response.ok) {
             console.log("User registered:", data.user);
-            alert("Registration successful!");
+            navigate("/userDashboard");
           } else {
             alert(data.message || "Something went wrong");
           }
@@ -126,7 +127,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
 
           if (response.ok) {
             console.log("Lawyer registered:", data.lawyer);
-            alert("Registration successful!");
+            navigate("/dashboard");
           } else {
             alert(data.error || "Something went wrong");
           }
@@ -366,8 +367,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
                   )}
                 </div>
 
-                {/* Available Time Fields */}
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Available From */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Available From
@@ -375,7 +376,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
                     <div className="relative">
                       <Clock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       <input
-                        type="time"
+                        type="datetime-local"
                         name="availableFrom"
                         value={formData.availableFrom}
                         onChange={handleInputChange}
@@ -389,6 +390,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
                     )}
                   </div>
 
+                  {/* Available To */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Available To
@@ -396,7 +398,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
                     <div className="relative">
                       <Clock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       <input
-                        type="time"
+                        type="datetime-local"
                         name="availableTo"
                         value={formData.availableTo}
                         onChange={handleInputChange}

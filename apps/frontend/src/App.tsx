@@ -7,6 +7,7 @@ import LawyerDashboard from "./components/LawyerDashboard";
 import Dashboard from "./components/Dashboard";
 import TermsConditions from "./components/TermsConditions";
 import RegisterForm from "./components/Register";
+import LawyerProfileUpdate from "./components/LawyerUpdateProfile";
 
 function App() {
   return (
@@ -19,7 +20,8 @@ function App() {
         <Route path="/dashboard" element= {<LawyerDashboard/>} />
         <Route path="/userDashboard" element= {<Dashboard/>} />
         <Route path="/T&C" element= {<TermsConditions onBack={() => {}} page = "/"/>} />
-          <Route path="/register" element={<RegisterForm type="user"/>} />
+        <Route path="/register" element={<RegisterForm type="user"/>} />
+        <Route path="/lawyer/update" element= {<LawyerProfileUpdate/>} />
       </Routes>
     </Router>
   );

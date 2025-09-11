@@ -1,16 +1,27 @@
 import express from "express";
-import lawyerRouter from './Router/lawyerRouter.js';
-import userRouter  from './Router/userRouter.js';
+import type { Application } from "express";
+import cors from "cors";
 
-const app = express();
+import lawyerRouter from "./Router/lawyerRouter.js";
+import userRouter from "./Router/userRouter.js";
+import paymentRoute from "./Router/Payments.js";
+
+const app: Application = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", 
+    credentials: true, 
+  })
+);
 
 app.use(express.json());
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/lawyers", lawyerRouter);
-
+app.use("/api/v1/payment/verify", paymentRoute )
 
 const PORT = 3003;
 app.listen(PORT, () => {
-  console.log(`Your server is running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

@@ -40,7 +40,7 @@ function Footer() {
                 </a>
               </div>
               <div>Careers</div>
-              <div>Privacy Policy</div>
+              <div><a href="/T&C">Privacy Policy</a></div>
             </div>
           </div>
 
@@ -97,13 +97,13 @@ function Footer() {
               href="/T&C"
               className="text-gray-400 hover:text-white transition-colors"
             >
-              Get Started
+              Terms & Conditions
             </a>
             <a
               href="/T&C"
               className="text-gray-400 hover:text-white transition-colors"
             >
-              Get Started
+            
             </a>
             <a
               href="#"
