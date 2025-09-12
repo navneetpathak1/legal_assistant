@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 const userRouter = Router();
 const JWT_SECRET = "your_jwt_secret";
 
-// -------------------- REGISTER --------------------
+// REGISTER 
 userRouter.post("/register", async (req: Request, res: Response) => {
   try {
     const { name, email, password, country } = req.body;
@@ -40,7 +40,7 @@ userRouter.post("/register", async (req: Request, res: Response) => {
   }
 });
 
-// -------------------- LOGIN --------------------
+// LOGIN 
 userRouter.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -62,7 +62,7 @@ userRouter.post("/login", async (req: Request, res: Response) => {
   }
 });
 
-// -------------------- AUTH MIDDLEWARE --------------------
+// AUTH MIDDLEWARE
 const authenticateUser = (req: Request & { user?: any }, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "No token provided" });
@@ -80,7 +80,7 @@ const authenticateUser = (req: Request & { user?: any }, res: Response, next: Ne
   }
 };
 
-// -------------------- PROFILE --------------------
+// PROFILE
 userRouter.get("/profile", authenticateUser, async (req: Request & { user?: any }, res: Response) => {
   try {
     const user = await prismaClient.user.findUnique({
@@ -120,5 +120,41 @@ userRouter.get("/profile", authenticateUser, async (req: Request & { user?: any 
     res.status(500).json({ message: "Server error" });
   }
 });
+
+userRouter.get("/availableProfile", authenticateUser, async (req, res) => {
+  try {
+    const now = new Date();
+    const lawyers = await prismaClient.lawyer.findMany({
+      where: {
+        availableFrom: { lte: now },
+        availableTo: { gte: now },
+      },
+      orderBy: [
+        { subscription: 'desc' },
+        { availableTo: 'desc' }  
+      ],
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: false,      
+        phone: true,
+        country: true,
+        specialization: true,
+        availableFrom: true,
+        availableTo: true,
+        subscription: true,
+      }
+    });
+
+    res.json(lawyers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+
+
 
 export default userRouter;

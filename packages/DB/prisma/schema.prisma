@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -14,7 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
   id             Int             @id @default(autoincrement())
   name           String
@@ -24,43 +17,91 @@ model User {
   createdAt      DateTime        @default(now())
   subscription   Subscription    @default(FREE) 
   conversations  Conversation[]
+  lawyer         Lawyer?
+  paymentsSent   Payment[]       @relation("PaymentsSent")
+  paymentsReceived Payment[]     @relation("PaymentsReceived")
+  mediationsA    Mediator[]      @relation("MediationPartyA")
+  mediationsB    Mediator[]      @relation("MediationPartyB")
 }
 
 model Conversation {
-  id        Int       @id @default(autoincrement())
-  title     String
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    Int
-  chats     Chat[]
-  limit     Int       @default(30)   // optional: messages cap
+  id          Int          @id @default(autoincrement())
+  title       String
+  createdAt   DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id])
+  userId      Int
+  mediator    Mediator?    @relation(fields: [mediatorId], references: [id])
+  mediatorId  Int?
+  lawyer      Lawyer?      @relation(fields: [lawyerId], references: [id])
+  lawyerId    Int?
+  chats       Chat[]
+  limit       Int          @default(30)
 }
 
 model Chat {
-  id             Int       @id @default(autoincrement())
-  role           String    // "user" | "bot"
+  id             Int          @id @default(autoincrement())
+  role           String       // "user" | "bot" | "lawyer"
   message        String
-  createdAt      DateTime  @default(now())
+  createdAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id])
   conversationId Int
 }
 
-
 model Lawyer {
-  id             Int       @id @default(autoincrement())
-  name           String
-  email          String    @unique
-  password       String
-  phone          String?
-  country        String
-  specialization String?
-  createdAt      DateTime  @default(now())
-  availableFrom  DateTime? 
-  availableTo    DateTime? 
+  id                 Int             @id @default(autoincrement())
+  name               String
+  email              String          @unique
+  password           String
+  phone              String?
+  charge             Int?            @default(1000)
+  country            String
+  specialization     String?
+  createdAt          DateTime        @default(now())
+  availableFrom      DateTime? 
+  availableTo        DateTime?
+  subscription       Subscription    @default(FREE)
+  user               User?           @relation(fields: [userId], references: [id])
+  userId             Int?            @unique
+  conversations      Conversation[]
+  mediations         Mediator[]
+
+  // Razorpay account integration (demo string)
+  razorpayAccountId  String?     @unique
+  payoutEnabled      Boolean     @default(false)
 }
 
+
+model Payment {
+  id          Int       @id @default(autoincrement())
+  sender      User      @relation("PaymentsSent", fields: [senderId], references: [id])
+  senderId    Int
+  receiver    User      @relation("PaymentsReceived", fields: [receiverId], references: [id])
+  receiverId  Int
+  amount      Float
+  paymentTime DateTime  @default(now())
+  success     Boolean
+  purpose     PaymentPurpose
+}
+
+model Mediator {
+  id             Int             @id @default(autoincrement())
+  partyA         User            @relation("MediationPartyA", fields: [partyAId], references: [id])
+  partyAId       Int
+  partyB         User            @relation("MediationPartyB", fields: [partyBId], references: [id])
+  partyBId       Int
+  assignedLawyer Lawyer?         @relation(fields: [lawyerId], references: [id])
+  lawyerId       Int?
+  createdAt      DateTime        @default(now())
+  conversations  Conversation[]
+}
 
 enum Subscription {
   FREE
   PREMIUM
+}
+
+enum PaymentPurpose {
+  SUBSCRIPTION   // user upgrades to Premium
+  LAWYER_BOOKING // user pays lawyer for meeting
+  MEDIATION      // user pays for mediation
 }
