@@ -3,6 +3,7 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -72,13 +73,13 @@ model Lawyer {
 
 
 model Payment {
-  id          Int       @id @default(autoincrement())
-  sender      User      @relation("PaymentsSent", fields: [senderId], references: [id])
+  id          Int              @id @default(autoincrement())
+  sender      User             @relation("PaymentsSent", fields: [senderId], references: [id])
   senderId    Int
-  receiver    User      @relation("PaymentsReceived", fields: [receiverId], references: [id])
+  receiver    User             @relation("PaymentsReceived", fields: [receiverId], references: [id])
   receiverId  Int
   amount      Float
-  paymentTime DateTime  @default(now())
+  paymentTime DateTime         @default(now())
   success     Boolean
   purpose     PaymentPurpose
 }

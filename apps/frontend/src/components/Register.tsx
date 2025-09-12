@@ -27,11 +27,12 @@ interface FormData {
   specialization?: string;
   availableFrom?: string;
   availableTo?: string;
+  charge?:string;
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FormData>({  
     name: "",
     email: "",
     password: "",
@@ -40,6 +41,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
     specialization: "",
     availableFrom: "",
     availableTo: "",
+    charge:""
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -306,6 +308,28 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
                 </div>
                 {errors.phone && (
                   <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                )}
+              </div>
+            )}
+            {/* Charge */}
+            {type === "lawyer" && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Charge
+                </label>
+                <div className="relative">
+                  {/* <Phone className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" /> */}
+                  <input
+                    type="number"
+                    name="money"
+                    value={formData.charge}
+                    onChange={handleInputChange}
+                    className={inputClass("charge")}
+                    placeholder="Enter your charge number"
+                  />
+                </div>
+                {errors.charge && (
+                  <p className="text-red-500 text-sm mt-1">{errors.charge}</p>
                 )}
               </div>
             )}

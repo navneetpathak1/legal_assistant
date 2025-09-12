@@ -4,7 +4,6 @@ import cors from "cors";
 
 import lawyerRouter from "./Router/lawyerRouter.js";
 import userRouter from "./Router/userRouter.js";
-import paymentRoute from "./Router/Payments.js";
 
 const app: Application = express();
 
@@ -19,7 +18,6 @@ app.use(express.json());
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/lawyers", lawyerRouter);
-app.use("/api/v1/payment/verify", paymentRoute )
 
 const PORT = 3003;
 app.listen(PORT, () => {
