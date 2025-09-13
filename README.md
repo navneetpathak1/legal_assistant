@@ -6,37 +6,11 @@ A comprehensive legal assistant platform built with modern web technologies, pro
 
 This is a **monorepo** built with **Turbo** containing:
 
-- **Frontend**: React + Vite + TypeScript + Tailwind CSS
+- **Frontend**: React + Vite + TypeScript + Tailwind CSS 
 - **Backend**: Express + TypeScript + Prisma ORM
 - **Database**: SQLite (development) / PostgreSQL (production)
 - **Payment**: Razorpay integration
 - **AI**: Google Gemini API for legal assistance
-
-## 📁 Project Structure
-
-```
-Final_year/
-├── apps/
-│   ├── backend/           # Express API server
-│   │   ├── src/
-│   │   │   ├── Router/    # API routes
-│   │   │   ├── config.ts  # Configuration
-│   │   │   └── index.ts   # Server entry point
-│   │   └── package.json
-│   └── frontend/          # React application
-│       ├── src/
-│       │   ├── components/
-│       │   └── ...
-│       └── package.json
-├── packages/
-│   ├── db/                # Prisma database package
-│   │   ├── prisma/
-│   │   └── src/
-│   ├── ui/                # Shared UI components
-│   ├── eslint-config/     # Shared ESLint config
-│   └── typescript-config/ # Shared TypeScript config
-└── package.json           # Root package.json
-```
 
 ## 🚀 Features
 
@@ -68,15 +42,8 @@ Final_year/
 - pnpm package manager
 - Docker (for database)
 
-### 1. Clone and Install Dependencies
 
-```bash
-git clone <repository-url>
-cd Final_year
-pnpm install
-```
-
-### 2. Database Setup
+### 1. Database Setup
 
 #### Option A: SQLite (Development)
 The project is configured to use SQLite by default. No additional setup required.
@@ -92,7 +59,7 @@ docker run --name postgres-db \
   -d postgres:15
 ```
 
-### 3. Environment Configuration
+### 2. Environment Configuration
 
 Create `.env` files in the backend directory:
 
@@ -111,8 +78,7 @@ GOOGLE_API_KEY="your_gemini_api_key"
 # JWT Secret
 JWT_SECRET="your_jwt_secret_key_here"
 ```
-
-### 4. Database Migration
+### 3. Database Migration
 
 ```bash
 cd packages/db
@@ -120,17 +86,7 @@ pnpm db:push  # Push schema to database
 # or
 pnpm db:migrate  # Run migrations
 ```
-
-### 5. Start Development Servers
-
-```bash
-# Start all applications
-pnpm dev
-
-# Or start individually
-pnpm dev:backend   # Backend server on port 3001
-pnpm dev:frontend  # Frontend on port 5173
-```
+`
 
 ## 📚 API Endpoints
 
@@ -173,31 +129,6 @@ Key models:
 - **Chat**: Individual messages in conversations
 - **Payment**: Payment transaction records
 - **Mediator**: Mediation between parties
-
-## 🔧 Development
-
-### Available Scripts
-```bash
-pnpm dev          # Start all development servers
-pnpm build        # Build all applications
-pnpm lint         # Run ESLint
-pnpm type-check   # TypeScript type checking
-```
-
-### Database Commands
-```bash
-cd packages/db
-pnpm db:push      # Push schema changes
-pnpm db:studio    # Open Prisma Studio
-pnpm db:reset     # Reset database
-```
-
-## 🚀 Deployment
-
-1. Set up production environment variables
-2. Configure production database (PostgreSQL recommended)
-3. Build the applications: `pnpm build`
-4. Deploy backend and frontend separately or together
 
 ## 🔐 Security Features
 
