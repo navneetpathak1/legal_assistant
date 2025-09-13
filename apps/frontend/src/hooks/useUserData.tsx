@@ -1,40 +1,106 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "../store/store";
+import { fetchUserProfile, fetchAvailableLawyers, sendMessage } from "../store/slices/userSlice";
+import { buildApiUrl } from "../config/api";
 
 export const useUserProfile = () => {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { profile, loading, error, conversations, availableLawyers, currentConversation, isProUser } = useSelector(
+    (state: RootState) => state.user
+  );
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem("token"); // store JWT when logging in
-        if (!token) {
-          setError("No token found, please login");
-          setLoading(false);
-          return;
-        }
+    const token = localStorage.getItem("token");
+    if (token && !profile) {
+      dispatch(fetchUserProfile());
+      dispatch(fetchAvailableLawyers());
+    }
+  }, [dispatch, profile]);
 
-        const res = await axios.get("http://localhost:5000/api/user/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const refreshProfile = () => {
+    dispatch(fetchUserProfile());
+  };
 
-        setProfile(res.data.profile);
-      } 
-   
-      catch (err) {
-        //@ts-expect-error okay
-        setError(err?.response?.data?.message || "Failed to fetch profile");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const refreshLawyers = () => {
+    dispatch(fetchAvailableLawyers());
+  };
 
-    fetchProfile();
+  const sendChatMessage = (message: string, conversationId?: number) => {
+    if (profile) {
+      return dispatch(sendMessage({
+        userId: profile.id,
+        message,
+        country: profile.country,
+        conversationId
+      }));
+    }
+  };
+
+  return { 
+    profile, 
+    loading, 
+    error, 
+    conversations,
+    availableLawyers,
+    currentConversation,
+    isProUser,
+    refreshProfile,
+    refreshLawyers,
+    sendChatMessage
+  };
+};
+
+export const useAuth = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+      setIsAuthenticated(true);
+    }
   }, []);
 
-  return { profile, loading, error };
+  const login = (newToken: string) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+    setIsAuthenticated(true);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setIsAuthenticated(false);
+  };
+
+  return { isAuthenticated, token, login, logout };
+};
+
+export const useApi = () => {
+  const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
+    const token = localStorage.getItem("token");
+    const url = buildApiUrl(endpoint);
+    
+    const config: RequestInit = {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers,
+      },
+    };
+
+    const response = await fetch(url, config);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || error.error || "Request failed");
+    }
+
+    return response.json();
+  };
+
+  return { makeRequest };
 };

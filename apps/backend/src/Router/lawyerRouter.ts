@@ -6,7 +6,9 @@ import { authenticateLawyer, type AuthRequest } from "../middleware/authLawyerMi
 import type { Response } from "express";
 import Razorpay from "razorpay";
 import crypto from "crypto";
-import { TEST_KEY_ID, TEST_KEY_SECRET } from "../config.js";
+// Razorpay test keys - replace with your actual keys
+const TEST_KEY_ID = process.env.RAZORPAY_KEY_ID || "rzp_test_your_key_id";
+const TEST_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "your_test_key_secret";
 
 const lawyerRouter = Router();
 const JWT_SECRET = "your_jwt_secret";  // we will update this in production
@@ -14,19 +16,41 @@ const JWT_SECRET = "your_jwt_secret";  // we will update this in production
 // REGISTER
 lawyerRouter.post("/register", async (req, res) => {
   console.log("register route");
+  console.log("Request body:", req.body);
 
   try {
     const { name, email, password, phone, country, specialization, availableFrom, availableTo, charge } = req.body;
 
+    console.log("Extracted fields:", { name, email, password: "***", phone, country, specialization, availableFrom, availableTo, charge });
+
     if (!name || !email || !password || !country) {
+      console.log("Validation failed - missing required fields");
       return res.status(400).json({ error: "Name, email, password, and country are required" });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Handle charge: default to 1000 if not provided
-    const lawyerCharge = charge ? Number(charge) * 100 : 1000;
+    // Handle charge: convert to number, default to 1000 if not provided or invalid
+    let lawyerCharge = 1000; // default value
+    if (charge) {
+      const parsedCharge = Number(charge);
+      if (!isNaN(parsedCharge) && parsedCharge > 0) {
+        lawyerCharge = parsedCharge;
+      }
+    }
+    console.log("Final charge value:", lawyerCharge);
+
+    console.log("Attempting to create lawyer with data:", {
+      name,
+      email,
+      phone,
+      country,
+      charge: lawyerCharge,
+      specialization,
+      availableFrom: availableFrom ? new Date(availableFrom) : null,
+      availableTo: availableTo ? new Date(availableTo) : null,
+    });
 
     const newLawyer = await prismaClient.lawyer.create({
       data: {
@@ -41,6 +65,8 @@ lawyerRouter.post("/register", async (req, res) => {
         availableTo: availableTo ? new Date(availableTo) : null,
       },
     });
+
+    console.log("Lawyer created successfully:", newLawyer.id);
 
     res.status(201).json({ message: "Lawyer registered successfully", lawyer: newLawyer });
   } catch (error: any) {

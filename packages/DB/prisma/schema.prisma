@@ -5,8 +5,8 @@ generator client {
 
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -16,7 +16,7 @@ model User {
   password       String
   country        String
   createdAt      DateTime        @default(now())
-  subscription   Subscription    @default(FREE) 
+  subscription   String          @default("FREE") 
   conversations  Conversation[]
   lawyer         Lawyer?
   paymentsSent   Payment[]       @relation("PaymentsSent")
@@ -60,7 +60,7 @@ model Lawyer {
   createdAt          DateTime        @default(now())
   availableFrom      DateTime? 
   availableTo        DateTime?
-  subscription       Subscription    @default(FREE)
+  subscription       String          @default("FREE")
   user               User?           @relation(fields: [userId], references: [id])
   userId             Int?            @unique
   conversations      Conversation[]
@@ -81,7 +81,7 @@ model Payment {
   amount      Float
   paymentTime DateTime         @default(now())
   success     Boolean
-  purpose     PaymentPurpose
+  purpose     String
 }
 
 model Mediator {
@@ -96,13 +96,6 @@ model Mediator {
   conversations  Conversation[]
 }
 
-enum Subscription {
-  FREE
-  PREMIUM
-}
-
-enum PaymentPurpose {
-  SUBSCRIPTION   // user upgrades to Premium
-  LAWYER_BOOKING // user pays lawyer for meeting
-  MEDIATION      // user pays for mediation
-}
+// Enums converted to string constants for SQLite compatibility
+// Subscription: "FREE" | "PREMIUM"
+// PaymentPurpose: "SUBSCRIPTION" | "LAWYER_BOOKING" | "MEDIATION"

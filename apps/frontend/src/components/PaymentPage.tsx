@@ -1,11 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCard, Check, Crown, ArrowLeft, QrCode } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { setProUser } from '../store/slices/themeSlice';
+import type { RootState } from '../store';
 
 interface PaymentPageProps {
   onBack: () => void;
 }
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 const PaymentPage: React.FC<PaymentPageProps> = ({ onBack }) => {
+  const { lawyerId } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { isDark } = useAppSelector((state: RootState) => state.theme);
+  
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'card'>('razorpay');
   const [formData, setFormData] = useState({
     cardNumber: '',
     expiryDate: '',
@@ -15,8 +32,6 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ onBack }) => {
     billingAddress: ''
   });
 
-  const [isProcessing, setIsProcessing] = useState(false);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -25,15 +40,113 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ onBack }) => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    // Load Razorpay script
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleRazorpayPayment = async () => {
+    setIsProcessing(true);
+    
+    try {
+      // Create order on backend
+      const orderResponse = await fetch(
+        lawyerId 
+          ? `http://localhost:3003/api/v1/lawyers/create-order/${lawyerId}`
+          : 'http://localhost:3003/api/v1/lawyers/create-order/1', // Default for pro upgrade
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      const orderData = await orderResponse.json();
+
+      if (!orderData.success) {
+        throw new Error('Failed to create order');
+      }
+
+      const options = {
+        key: 'rzp_test_your_key_id', // Replace with your Razorpay key
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'LegalAssist Pro',
+        description: lawyerId ? 'Lawyer Consultation Payment' : 'Pro Subscription',
+        order_id: orderData.orderId,
+        theme: {
+          color: isDark ? '#3b82f6' : '#2563eb'
+        },
+        handler: async (response: any) => {
+          try {
+            // Verify payment on backend
+            const verifyResponse = await fetch('http://localhost:3003/api/v1/lawyers/verify', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (verifyData.success) {
+              dispatch(setProUser(true));
+              alert('Payment successful! Welcome to LegalAssist Pro!');
+              navigate(lawyerId ? '/dashboard' : '/userDashboard');
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            alert('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: 'User Name',
+          email: 'user@example.com',
+          contact: '9999999999'
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Payment failed. Please try again.');
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCardPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     
-    // Simulate payment processing
+    // Simulate card payment processing
     setTimeout(() => {
       setIsProcessing(false);
-      alert('Payment successful! Welcome to Legal Assist Pro!');
-      onBack();
+      dispatch(setProUser(true));
+      alert('Payment successful! Welcome to LegalAssist Pro!');
+      navigate(lawyerId ? '/dashboard' : '/userDashboard');
     }, 2000);
   };
 
@@ -131,7 +244,66 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ onBack }) => {
               <h3 className="text-xl font-semibold text-gray-900">Payment Details</h3>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Payment Method Selection */}
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Choose Payment Method</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('razorpay')}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                    paymentMethod === 'razorpay'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-lg font-semibold">Razorpay</div>
+                    <div className="text-xs text-gray-500">UPI, Cards, Wallets</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('card')}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                    paymentMethod === 'card'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-lg font-semibold">Card</div>
+                    <div className="text-xs text-gray-500">Credit/Debit Card</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {paymentMethod === 'razorpay' ? (
+              <div className="text-center py-8">
+                <button
+                  onClick={handleRazorpayPayment}
+                  disabled={isProcessing}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Crown size={20} />
+                      Pay with Razorpay - ₹{lawyerId ? '1000' : '29'}
+                    </>
+                  )}
+                </button>
+                <p className="text-xs text-gray-500 mt-3">
+                  Secure payment powered by Razorpay
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleCardPayment} className="space-y-6">
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -242,7 +414,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ onBack }) => {
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isProcessing ? (
                   <>
@@ -252,7 +424,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ onBack }) => {
                 ) : (
                   <>
                     <Crown size={20} />
-                    Upgrade to Pro - $29/month
+                    Pay with Card - ₹{lawyerId ? '1000' : '29'}
                   </>
                 )}
               </button>
@@ -262,6 +434,7 @@ const PaymentPage: React.FC<PaymentPageProps> = ({ onBack }) => {
                 Cancel anytime from your account settings.
               </p>
             </form>
+            )}
           </div>
         </div>
       </div>

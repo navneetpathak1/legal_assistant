@@ -26,7 +26,7 @@ function AboutPage() {
 
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  LegalAI Assistant
+                  LegalAsist
                 </h1>
                 <p className="text-sm text-slate-600">
                   Professional Legal Support
@@ -94,7 +94,7 @@ function AboutPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h3 className="text-4xl font-bold text-slate-800 mb-6">
-              About LegalAI Assistant
+              About LegalAsist
             </h3>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               We're transforming the legal industry through innovative AI

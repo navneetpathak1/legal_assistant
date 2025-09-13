@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {Link} from "react-router-dom"
 import {
   Menu,
@@ -17,10 +17,20 @@ import {
   Briefcase,
   Heart,
 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { initializeTheme } from '../store/slices/themeSlice';
+import type { RootState } from '../store';
 import Footer from "./Footer";
+import ThemeToggle from "./ThemeToggle";
 
 function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const dispatch = useAppDispatch();
+  const { isDark } = useAppSelector((state: RootState) => state.theme);
+
+  useEffect(() => {
+    dispatch(initializeTheme());
+  }, [dispatch]);
 
   const services = [
     {
@@ -105,14 +115,18 @@ function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
       {/* Header */}
-      <header className="fixed top-0 w-full bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+      <header className={`fixed top-0 w-full backdrop-blur-md z-50 border-b transition-colors duration-300 ${
+        isDark 
+          ? 'bg-slate-900/95 border-slate-700' 
+          : 'bg-white/95 border-gray-100'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <Scale className="w-8 h-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">
+              <Scale className={`w-8 h-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+              <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 LegalAssist
               </span>
             </div>
@@ -121,28 +135,37 @@ function LandingPage() {
             <nav className="hidden md:flex items-center space-x-8">
               <a
                 href="#home"
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className={`hover:text-blue-600 transition-colors font-medium ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}
               >
                 Home
               </a>
               <a
                 href="#services"
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className={`hover:text-blue-600 transition-colors font-medium ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}
               >
                 Services
               </a>
               <a
                 href="#about"
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className={`hover:text-blue-600 transition-colors font-medium ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}
               >
                 About
               </a>
               <a
                 href="#testimonials"
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                className={`hover:text-blue-600 transition-colors font-medium ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}
               >
                 Reviews
               </a>
+              <ThemeToggle />
               <button className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-all duration-300 transform hover:scale-105">
                 <Link to="/about">Get Started</Link>
               </button>

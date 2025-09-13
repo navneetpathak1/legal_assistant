@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   User,
   Mail,
@@ -13,6 +13,9 @@ import {
   Scale,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { initializeTheme } from '../store/slices/themeSlice';
+import type { RootState } from '../store';
 
 interface RegisterFormProps {
   type: "user" | "lawyer";
@@ -32,6 +35,9 @@ interface FormData {
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { isDark } = useAppSelector((state: RootState) => state.theme);
+  
   const [formData, setFormData] = useState<FormData>({  
     name: "",
     email: "",
@@ -46,6 +52,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
+
+  useEffect(() => {
+    dispatch(initializeTheme());
+  }, [dispatch]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -178,17 +188,25 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${
+      isDark 
+        ? 'bg-gradient-to-br from-slate-900 to-slate-800' 
+        : 'bg-gradient-to-br from-slate-50 to-blue-50'
+    }`}>
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 ${
+            isDark 
+              ? 'bg-gradient-to-r from-blue-500 to-purple-600' 
+              : 'bg-blue-600'
+          }`}>
             <Scale className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Join LegalAssist
           </h2>
-          <p className="text-gray-600">
+          <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
             {type === "lawyer"
               ? "Create your lawyer profile and start helping clients"
               : "Sign up to connect with qualified legal professionals and trained system"}
@@ -213,7 +231,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className={`rounded-2xl shadow-xl p-8 transition-colors duration-300 ${
+          isDark 
+            ? 'bg-slate-800 border border-slate-700' 
+            : 'bg-white'
+        }`}>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Field */}
             <div>
@@ -321,11 +343,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
                   {/* <Phone className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" /> */}
                   <input
                     type="number"
-                    name="money"
+                    name="charge"
                     value={formData.charge}
                     onChange={handleInputChange}
                     className={inputClass("charge")}
-                    placeholder="Enter your charge number"
+                    placeholder="Enter your charge per hour (₹)"
                   />
                 </div>
                 {errors.charge && (

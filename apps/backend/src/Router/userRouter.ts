@@ -3,6 +3,15 @@ import type { Request, Response, NextFunction } from "express";
 import { prismaClient } from "@repo/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { GOOGLE_API_KEY, TEST_KEY_ID, TEST_KEY_SECRET } from "../config.js";
+import Razorpay from "razorpay";
+import crypto from "crypto";
+
+// Initialize Razorpay instance
+const razorpay = new Razorpay({
+  key_id: TEST_KEY_ID,
+  key_secret: TEST_KEY_SECRET,
+});
 
 const userRouter = Router();
 const JWT_SECRET = "your_jwt_secret";
@@ -121,6 +130,7 @@ userRouter.get("/profile", authenticateUser, async (req: Request & { user?: any 
   }
 });
 
+// meeting
 userRouter.get("/availableProfile", authenticateUser, async (req, res) => {
   try {
     const now = new Date();
@@ -155,6 +165,188 @@ userRouter.get("/availableProfile", authenticateUser, async (req, res) => {
 });
 
 
+const GEMINI_API_KEY = GOOGLE_API_KEY;
+const GEMINI_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+
+userRouter.post("/send", async (req, res) => {
+  try {
+    const { userId, message, country, conversationId } = req.body;
+
+    let conversation;
+
+    if (!conversationId) {
+      conversation = await prismaClient.conversation.create({
+        data: {
+          userId,
+          title: message.slice(0, 30) + "...",
+        },
+      });
+    } else {
+      conversation = await prismaClient.conversation.findUnique({
+        where: { id: conversationId },
+      });
+
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+    }
+
+    const count = await prismaClient.chat.count({
+      where: { conversationId: conversation.id },
+    });
+
+    if (count >= conversation.limit) {
+      return res.status(403).json({
+        error: "Chat limit reached for this conversation (30 messages).",
+        conversationId: conversation.id,
+      });
+    }
+
+    await prismaClient.chat.create({
+      data: {
+        conversationId: conversation.id,
+        role: "user",
+        message,
+      },
+    });
+
+    const chats = await prismaClient.chat.findMany({
+      where: { conversationId: conversation.id },
+      orderBy: { createdAt: "asc" },
+      take: 30,
+    });
+
+    const contents = chats.map((c) => ({
+      role: c.role === "user" ? "user" : "model",
+      parts: [{ text: c.message }],
+    }));
+
+    const contentsAdd = `You are a helpful legal assistant for all people. Think according to the people of ${country}. 
+    The question is: ${message} and please consider previous chat also: ${contents} and reply like I am 15 year old. 
+    Answer clearly and in simpler language so that everyone can understand. 
+    And Also mansion according to which law or rules your replay is based`;
+
+    const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents }),
+    });
+
+    const data = await response.json();
+
+    const reply =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No response from Gemini";
+
+    await prismaClient.chat.create({
+      data: {
+        conversationId: conversation.id,
+        role: "bot",
+        message: reply,
+      },
+    });
+
+    res.json({
+      reply,
+      conversationId: conversation.id,
+    });
+  } catch (err) {
+    console.error("Chat error:", err);
+    res.status(500).json({ error: "Chat failed" });
+  }
+});
+
+// payment route
+
+// Create order for user subscription
+userRouter.post("/create-order/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const price = 20000; // Subscription price in rupees
+
+    const user = await prismaClient.user.findUnique({
+      where: { id: Number(userId) },
+    });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const amount = price; // Use fixed subscription price
+
+    const options = {
+      amount: amount * 100, // Razorpay expects paise
+      currency: "INR",
+      receipt: `receipt_user_${userId}_${Date.now()}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    res.json({
+      success: true,
+      orderId: order.id,
+      amount: options.amount,
+      currency: options.currency,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// Verify Payment
+userRouter.post("/verify", authenticateUser, async (req, res: Response) => {
+  try {
+    const { user } = req;
+    if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const generatedSignature = crypto
+      .createHmac("sha256", TEST_KEY_SECRET)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest("hex");
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({ error: "Invalid signature" });
+    }
+
+    const dbUser = await prismaClient.user.findUnique({
+      where: { id: parseInt(user.userId) },
+    });
+
+    if (!dbUser) {
+      return res.status(404).json({ error: "User not found in DB" });
+    }
+
+    const updatedUser = await prismaClient.user.update({
+      where: { id: dbUser.id },
+      data: { subscription: "PREMIUM" },
+    });
+
+    await prismaClient.payment.create({
+      data: {
+        senderId: dbUser.id,
+        receiverId: dbUser.id,
+        amount: 20000, // ₹ not paise
+        success: true,
+        purpose: "SUBSCRIPTION",
+      },
+    });
+
+    return res.json({
+      success: true,
+      message: "Payment successful, subscription upgraded",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Payment verification failed:", error);
+    return res.status(500).json({ error: "Payment verification failed" });
+  }
+});
 
 
 
