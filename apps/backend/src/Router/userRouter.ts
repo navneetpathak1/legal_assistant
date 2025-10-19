@@ -34,8 +34,11 @@ userRouter.post("/register", async (req: Request, res: Response) => {
       data: { name, email, password: hashedPassword, country },
     });
 
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+    
     res.status(201).json({
       message: "User registered successfully",
+      token,
       user: {
         id: user.id,
         name: user.name,
@@ -230,7 +233,7 @@ userRouter.post("/send", async (req, res) => {
     const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents }),
+      body: JSON.stringify({ contentsAdd }),
     });
 
     const data = await response.json();

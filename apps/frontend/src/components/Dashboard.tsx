@@ -7,7 +7,7 @@ import { useUserProfile, useAuth } from '../hooks/useUserData';
 import Sidebar from './Sidebar.tsx';
 import Header from './Header.tsx';
 import ChatArea from './ChatArea.tsx';
-import PaymentPage from './PaymentPage.tsx';
+// import PaymentPage from './PaymentPage.tsx';
 import SimpleProfilePage from './SimpleProfilePage.tsx';
 import LawyerList from './LawyerList.tsx';
 
@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
           </div>
         );
       case 'payment':
-        return <PaymentPage onBack={() => setCurrentPage('chat')} />;
+        // return <PaymentPage onBack={() => setCurrentPage('chat')} />;
       case 'chat':
       default:
         return (

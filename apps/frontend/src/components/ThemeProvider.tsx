@@ -8,6 +8,7 @@ interface ThemeProviderProps {
 
 const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const dispatch = useAppDispatch();
+  // @ts-ignore
   const { currentTheme, isDark } = useAppSelector((state) => state.theme);
 
   useEffect(() => {

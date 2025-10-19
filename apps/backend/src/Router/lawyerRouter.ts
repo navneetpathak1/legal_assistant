@@ -68,7 +68,21 @@ lawyerRouter.post("/register", async (req, res) => {
 
     console.log("Lawyer created successfully:", newLawyer.id);
 
-    res.status(201).json({ message: "Lawyer registered successfully", lawyer: newLawyer });
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: newLawyer.id, email: newLawyer.email },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // Return response with token and lawyer data (excluding password)
+    const { password: _, ...lawyerData } = newLawyer;
+    
+    res.status(201).json({ 
+      message: "Lawyer registered successfully", 
+      token,
+      lawyer: lawyerData 
+    });
   } catch (error: any) {
     if (error.code === "P2002") {
       return res.status(400).json({ error: "Email already exists" });

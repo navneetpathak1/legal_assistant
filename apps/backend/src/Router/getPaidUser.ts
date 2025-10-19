@@ -6,7 +6,8 @@ import type { AuthRequest } from "../middleware/authLawyerMiddleware.js";
 
 const lawyerServiceRouter = Router();
 
-// Get all users who paid this lawyer
+// Get all users who paid this lawyer=
+
 lawyerServiceRouter.get(
   "/clients",
   authenticateLawyer,

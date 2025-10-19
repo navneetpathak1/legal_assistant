@@ -1,28 +1,30 @@
 import React, { useState } from 'react';
 import { 
-  Settings, 
   User, 
   Bell, 
   Shield, 
   Palette, 
-  Globe, 
-  Download, 
-  Trash2,
-  ArrowLeft,
+  Globe,
   Save,
   Eye,
-  EyeOff
+  EyeOff,
+  Trash2,
+  ArrowLeft,
+  Settings
 } from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../store/store';
 import { toggleTheme } from '../store/slices/themeSlice';
+import { logout } from '../store/slices/authSlice';
 import { useUserProfile, useAuth } from '../hooks/useUserData';
+import ThemeToggle from './ThemeToggle';
 
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { userType, user, lawyer } = useAppSelector((state) => state.auth);
-  const { currentTheme } = useAppSelector((state) => state.theme);
+  const dispatch = useDispatch<AppDispatch>();
+  const { userType, user, lawyer } = useSelector((state: RootState) => state.auth);
+  const { currentTheme } = useSelector((state: RootState) => state.theme);
   
   const [activeTab, setActiveTab] = useState('profile');
   const [showDeleteModal, setShowDeleteModal] = useState(false);

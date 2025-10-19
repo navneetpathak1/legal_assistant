@@ -139,6 +139,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ type }) => {
 
           if (response.ok) {
             console.log("Lawyer registered:", data.lawyer);
+            // Store the token in local storage
+            if (data.token) {
+              localStorage.setItem('token', data.token);
+              localStorage.setItem('userType', 'lawyer');
+            }
             navigate("/dashboard");
           } else {
             alert(data.error || "Something went wrong");

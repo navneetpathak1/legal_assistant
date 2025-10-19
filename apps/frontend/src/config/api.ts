@@ -1,6 +1,4 @@
 // API Configuration
-// You can change this to match your backend server port
-// Common ports: 3000, 3001, 3003, 5000, 8000
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3003',
   ENDPOINTS: {
@@ -8,6 +6,14 @@ export const API_CONFIG = {
     USER_LOGIN: '/api/v1/users/login',
     USER_REGISTER: '/api/v1/users/register',
     USER_PROFILE: '/api/v1/users/profile',
+    
+    // Payment endpoints
+    CREATE_ORDER: '/api/v1/payments/create-order',
+    VERIFY_PAYMENT: '/api/v1/payments/verify',
+    GET_PAYMENT: (paymentId: string) => `/api/v1/payments/${paymentId}`,
+    
+    // Lawyer endpoints
+    GET_LAWYER: (lawyerId: string) => `/api/v1/lawyers/${lawyerId}`,
     USER_AVAILABLE_PROFILE: '/api/v1/users/availableProfile',
     USER_SEND: '/api/v1/users/send',
     

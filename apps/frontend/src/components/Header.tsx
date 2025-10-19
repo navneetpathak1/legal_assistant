@@ -3,6 +3,7 @@ import { Menu, Scale, User, LogOut, ChevronDown } from 'lucide-react';
 import { useUserProfile } from '../hooks/useUserData';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store/store';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -14,6 +15,27 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onNavigate }) => {
   const { profile } = useUserProfile();
   const { isDark } = useSelector((state: RootState) => state.theme);
 
+  const navigate = useNavigate();
+
+  const handleAction = (action: string) => {
+    switch (action) {
+      case 'profile':
+        onNavigate('profile');
+        break;
+      case 'lawyers':
+        navigate('/lawyers');
+        break;
+      case 'logout':
+        localStorage.removeItem('token');
+        localStorage.removeItem('userType');
+        navigate('/');
+        break;
+      default:
+        break;
+    }
+    setIsDropdownOpen(false);
+  };
+
   const dropdownItems = [
     { icon: User, label: "Profile", action: "profile", color: "text-purple-500" },
     { icon: Scale, label: "Find Lawyers", action: "lawyers", color: "text-blue-500" },
@@ -21,8 +43,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onNavigate }) => {
   ];
 
   const handleItemClick = (action: string) => {
-    setIsDropdownOpen(false);
-    onNavigate(action);
+    handleAction(action);
   };
 
   return (
