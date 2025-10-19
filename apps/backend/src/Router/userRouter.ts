@@ -3,14 +3,13 @@ import type { Request, Response, NextFunction } from "express";
 import { prismaClient } from "@repo/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { GOOGLE_API_KEY, TEST_KEY_ID, TEST_KEY_SECRET } from "../config.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 
 // Initialize Razorpay instance
 const razorpay = new Razorpay({
-  key_id: TEST_KEY_ID,
-  key_secret: TEST_KEY_SECRET,
+  key_id: process.env.RAZORPAY_KEY_ID || '',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
 });
 
 const userRouter = Router();
@@ -168,7 +167,7 @@ userRouter.get("/availableProfile", authenticateUser, async (req, res) => {
 });
 
 
-const GEMINI_API_KEY = GOOGLE_API_KEY;
+const GEMINI_API_KEY = process.env.GOOGLE_API_KEY || '';
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
@@ -309,7 +308,7 @@ userRouter.post("/verify", authenticateUser, async (req, res: Response) => {
     }
 
     const generatedSignature = crypto
-      .createHmac("sha256", TEST_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || '')
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
